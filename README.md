@@ -1,9 +1,9 @@
 # 3C3H Evaluation Pipeline
 
-A fully–automated, **Apache‑2.0–licensed** toolkit that generates answers from Arabic‑capable language models (open‑weight *and* proprietary), judges them with LLM‑as‑a‑Judge following the **3C3H** (Correctness, Completeness, Conciseness, Helpfulness, Honesty, Harmlessness) evaluation score criterias which were first introduced [here](https://huggingface.co/blog/leaderboard-3c3h-aragen) and produces leaderboard‑ready scores to report.
+A fully–automated, **Apache‑2.0–licensed** toolkit that generates answers from language models (open‑weight *and* proprietary), judges them with LLM‑as‑a‑Judge following the **3C3H** (Correctness, Completeness, Conciseness, Helpfulness, Honesty, Harmlessness) evaluation score criterias which were first introduced [here](https://huggingface.co/blog/leaderboard-3c3h-aragen) and produces leaderboard‑ready scores to report.
 
 > **Why?**
-> Measuring the real‑world utility and safety of Arabic LLMs at scale requires a reproducible, end‑to‑end pipeline. This repository powers currently the *Arabic Leaderboards* and related internal evaluations at **G42**'s **Inception**.
+> Measuring the real‑world utility and safety of LLMs at scale requires a reproducible, end‑to‑end pipeline. This repository powers currently the [*Arabic Leaderboards*](https://huggingface.co/spaces/inceptionai/Arabic-Leaderboards) and related internal evaluations at **G42**'s **Inception**.
 
 ---
 
@@ -11,7 +11,7 @@ A fully–automated, **Apache‑2.0–licensed** toolkit that generates answers 
 
 | Phase | Script | Highlights |
 |-------|--------|------------|
-| **Generation — Open Models** | `pipeline/generate-oma.py` | Local HF models (Text & Text + Vision), automatic multi‑GPU sharding, chat‐template detection, parameter counting. |
+| **Generation — Open Models** | `pipeline/generate-oma.py` | Local HF models (Text & Text + Vision), automatic multi‑GPU sharding, chat‐template detection. |
 | **Generation — Proprietary Models** | `pipeline/generate-pma.py` | Unified wrapper over OpenAI, Anthropic, Google Gemini, DeepSeek, Mistral, xAI Grok, and Inception APIs with key auto‑discovery and rate‑limit handling. |
 | **Judging** | `pipeline/jury.py` | Multi‑judge voting or averaging, Claude 3.5 & GPT‑4o support, per‑round prompts, zero‑score propagation, JSON extraction robustness. |
 | **Aggregation** | `pipeline/averaging-to-results.py` | Merges *_judged.json* files, computes per‑judge and per‑task averages, writes batch‑scoped `results/*.json`. |
