@@ -29,12 +29,13 @@ A fully–automated, **Apache‑2.0–licensed** toolkit that generates answers 
 │   ├── generate-pma.py        # Proprietary answer generation
 │   ├── jury.py                # LLM‑as‑a‑Judge
 │   ├── averaging-to-results.py
-│   ├── run-pipeline.slurm     # SLURM pipeline script
+│   ├── run-pipeline.sh        # SLURM pipeline script
+│   ├── requirements.txt       # requirements file to be installed
 │   ├── utils/                 # Sync helpers (Hub ↔ local)
 │   └── prompts/               # Different versions of the Judge System Prompts
 ├── requests/                  # Task-specific model requests
-│   └── <task-name>/          # e.g. AraGen-12-2024-dev/
-│       ├── OpenRequests/     # Open-source model requests
+│   └── <task-name>/           # e.g. AraGen-12-2024-dev/
+│       ├── OpenRequests/      # Open-source model requests
 │       └── ProprietaryRequests/ # Proprietary model requests
 ├── answers/                   # Generated model answers
 │   └── <task-name>/          # Task-specific answers
@@ -52,12 +53,12 @@ A fully–automated, **Apache‑2.0–licensed** toolkit that generates answers 
 ```bash
 # 1. Clone
 $ git clone https://github.com/inceptionai-abudhabi/3C3H.git
-$ cd 3c3h
+$ cd 3C3H
 
 # 2. Create environment (Conda example)
 $ conda create -n 3c3h python=3.9 -y
 $ conda activate 3c3h
-$ pip install -r requirements.txt
+$ pip install -r ./pipeline/requirements.txt
 
 # 3. Export **all** required API keys & HF token
 $ export HF_TOKEN="<your-hf-token>"
