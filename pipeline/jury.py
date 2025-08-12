@@ -411,19 +411,24 @@ def openai_judge_answer(model_name: str,
         {"role": "user", "content": prompt},
     ]
 
-    try:
-        response = client.chat.completions.create(
-            model=model_name,                 # deployment name
-            messages=filtered_messages,
-            temperature=0.0,                  # deterministic
-            seed=42,                          # reproducibility
-            max_tokens=max_tokens,
-        )
-        return response.choices[0].message.content.strip()
-    except Exception as exc:
-        err = f"Error during Azure OpenAI call ({model_name}): {exc}"
-        print(err)
-        return err
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            response = client.chat.completions.create(
+                model=model_name,                 # deployment name
+                messages=filtered_messages,
+                temperature=0.0,                  # deterministic
+                seed=42,                          # reproducibility
+                max_tokens=max_tokens,
+            )
+            return response.choices[0].message.content.strip()
+        except Exception as exc:
+            err = f"Error during Azure OpenAI call ({model_name}) on attempt {attempt + 1}/{max_retries}: {exc}"
+            print(err)
+            if attempt < max_retries - 1:
+                time.sleep(5)  # Wait for 5 seconds before retrying
+            else:
+                return err  # Return the last error
 
 
 def anthropic_judge_answer(model_name, system_prompt, prompt, api_key, max_tokens=2048):
@@ -443,36 +448,41 @@ def anthropic_judge_answer(model_name, system_prompt, prompt, api_key, max_token
         api_key=api_key
     )
     
-    try:
-        # Prepare the messages
-        messages=[
-            {
-                "role": "user",
-                "content": [
-                    {
-                        "type": "text",
-                        "text": prompt
-                    }
-                ]
-            }
-        ]
-        response = client.messages.create(
-            model=model_name,
-            system=system_prompt,
-            messages=messages,
-            max_tokens=max_tokens,
-            temperature=0,   # Set to 0 for deterministic output
-            top_k=1          # Set top_k to 1 to consider only the highest-probability token
-        )
-        # Extract the response text from response.content
-        response_text = response.content[0].text
-        time.sleep(10)  # Sleep to respect API rate limits
-        return response_text
-    except Exception as e:
-        # Log the error and return error message
-        error_message = f"Error during Anthropic API call ({model_name}): {str(e)}"
-        print(error_message)
-        return error_message
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            # Prepare the messages
+            messages=[
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": prompt
+                        }
+                    ]
+                }
+            ]
+            response = client.messages.create(
+                model=model_name,
+                system=system_prompt,
+                messages=messages,
+                max_tokens=max_tokens,
+                temperature=0,   # Set to 0 for deterministic output
+                top_k=1          # Set top_k to 1 to consider only the highest-probability token
+            )
+            # Extract the response text from response.content
+            response_text = response.content[0].text
+            time.sleep(10)  # Sleep to respect API rate limits
+            return response_text
+        except Exception as e:
+            # Log the error and return error message
+            error_message = f"Error during Anthropic API call ({model_name}) on attempt {attempt + 1}/{max_retries}: {str(e)}"
+            print(error_message)
+            if attempt < max_retries - 1:
+                time.sleep(5)
+            else:
+                return error_message
 
 def inception_judge_answer(model_name, system_prompt, prompt, api_key):
     """
@@ -499,26 +509,31 @@ def inception_judge_answer(model_name, system_prompt, prompt, api_key):
         base_url=openai_api_base,
     )
     
-    try:
-        # Make the API call to the Inception model
-        messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": prompt}
-            ]
-        response = client.chat.completions.create(
-            model=model_name,
-            messages=messages,
-            temperature=0.0,  # Set to 0 for deterministic output
-            seed=42           # Set the seed to enhance reproducibility
-        )
-        # Extract the full response
-        response_text = response.choices[0].message.content.strip()
-        return response_text
-    except Exception as e:
-        # Log the error and return error message
-        error_message = f"Error during Inception AI API call ({model_name}): {str(e)}"
-        print(error_message)
-        return error_message
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            # Make the API call to the Inception model
+            messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": prompt}
+                ]
+            response = client.chat.completions.create(
+                model=model_name,
+                messages=messages,
+                temperature=0.0,  # Set to 0 for deterministic output
+                seed=42           # Set the seed to enhance reproducibility
+            )
+            # Extract the full response
+            response_text = response.choices[0].message.content.strip()
+            return response_text
+        except Exception as e:
+            # Log the error and return error message
+            error_message = f"Error during Inception AI API call ({model_name}) on attempt {attempt + 1}/{max_retries}: {str(e)}"
+            print(error_message)
+            if attempt < max_retries - 1:
+                time.sleep(5)
+            else:
+                return error_message
 
 def extract_scores(response_text, result_tag):
     """
