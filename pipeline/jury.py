@@ -33,7 +33,6 @@ from anthropic import Anthropic
 openai_api_key = os.getenv("OPENAI_API_KEY")
 anthropic_api_key = os.getenv("ANTHROPIC_API_KEY")
 inception_api_key = os.getenv("INCEPTION_API_KEY")
-inception_llama3p1_405b_api_key = os.getenv("INCEPTION_LLAMA3P1_405B_API_KEY")
 
 # Check for missing keys
 missing_keys = []
@@ -43,35 +42,17 @@ if not anthropic_api_key:
     missing_keys.append("ANTHROPIC_API_KEY")
 if not inception_api_key:
     missing_keys.append("INCEPTION_API_KEY")
-if not inception_llama3p1_405b_api_key:
-    missing_keys.append("INCEPTION_LLAMA3P1_405B_API_KEY")
-
 if missing_keys:
     print(f"Error: The following environment variables are not set: {', '.join(missing_keys)}")
 
-
-# ==========================
-# Valid Judges and Strategies
-# ==========================
-
-valid_judges = [
-    'gpt-4o',
-    'gpt-4o-mini',
-    'claude-3.5-sonnet',
-    'claude-3.5-haiku',
-    'claude-3-haiku',
-    'llama3.1-405b',
-    'jais-30b',
-    'jais-70b',
-    'k2-65b'
-]
-
+# ================
+# Valid Strategies
+# ================
 valid_strategies = ['average', 'vote']
 
-# ==========================
+# =============================
 # Command-line argument parser
-# ==========================
-
+# =============================
 parser = argparse.ArgumentParser(description='Jury script for evaluating model answers.')
 parser.add_argument(
     '--answers',
@@ -97,12 +78,8 @@ args = parser.parse_args()
 answers_dir = args.answers
 judged_suffix = "_judged.json"
 
-# Process and validate judge-list argument
+# Process judge-list argument
 judge_list_input = [judge.strip().lower() for judge in args.judge_list.split(',')]
-for judge in judge_list_input:
-    if judge not in valid_judges:
-        print(f"Error: Invalid judge '{judge}'. Valid judges are: {', '.join(valid_judges)}")
-        exit(1)
 # Prepare the judges list
 judges = [{'name': judge} for judge in judge_list_input]
 
@@ -496,9 +473,6 @@ def inception_judge_answer(model_name, system_prompt, prompt, api_key):
     elif model_name == 'k2-65b':
         openai_api_base = "https://jais-v2-web-inference-65b-dev.inceptionai.ai/v1"
         model_name = "jais-65b"
-    elif model_name == 'llama3.1-405b':
-        openai_api_base = "http://176.56.198.97:8076/v1"
-        model_name = "/project/LLAMA_FAMILY/llama-models/models/llama3_1/HF_MODELS/Meta-Llama-3.1-405B-Instruct-FP8"
     else:
         print(f"Unknown Inception model name: {model_name}")
         return ""
@@ -886,16 +860,12 @@ def main():
                 print(f"    Getting response from judge: {judge_name}")
 
                 # Get the response from the appropriate judge function
-                if judge_name in ['gpt-4o', 'gpt-4o-mini']:
+                if re.search(r'gpt|o\d+', judge_name.lower()):
                     full_response = openai_judge_answer(judge_name, combined_system_prompt, prompt, openai_api_key)
-                elif judge_name in ['claude-3.5-sonnet', 'claude-3-haiku', 'claude-3.5-haiku']:
+                elif re.search(r'claude', judge_name.lower()):
                     full_response = anthropic_judge_answer(judge_name, combined_system_prompt, prompt, anthropic_api_key)
-                elif judge_name in ['jais-30b', 'jais-70b', 'k2-65b', 'llama3.1-405b']:
-                    if judge_name == 'llama3.1-405b':
-                        api_key = inception_llama3p1_405b_api_key
-                    else:
-                        api_key = inception_api_key
-                    full_response = inception_judge_answer(judge_name, combined_system_prompt, prompt, api_key)
+                elif judge_name in ['jais-30b', 'jais-70b', 'k2-65b']:
+                    full_response = inception_judge_answer(judge_name, combined_system_prompt, prompt, inception_api_key)
                 else:
                     print(f"Unknown judge name: {judge_name}")
                     continue
